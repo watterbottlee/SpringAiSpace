@@ -1,38 +1,46 @@
 package com.springai.demo.services.impl;
 
-import com.springai.demo.entities.AiResponse;
 import com.springai.demo.services.ChatService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.messages.Message;
-import org.springframework.ai.chat.prompt.Prompt;
-import org.springframework.ai.chat.prompt.PromptTemplate;
-import org.springframework.ai.chat.prompt.SystemPromptTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 
 @Service
+@Slf4j
 public class ChatServiceImpl implements ChatService {
 
     @Autowired
     private ChatClient chatClient;
 
+    @Value("classpath:/prompts/system-message.st")
+    private Resource systemPrompt;
+
+    @Value("classpath:/prompts/user-message.st")
+    private Resource userPrompt;
+
     @Override
     public String chat(String query) {
 
-        SystemPromptTemplate systemPromptTemplate = SystemPromptTemplate.builder()
-                .template("you are a helpful coding assistant, answer like an expert ")
-                .build();
-        Message systemMessage = systemPromptTemplate.createMessage();
-        PromptTemplate userPromtTemplate = PromptTemplate.builder()
-                .template(query)
-                .build();
-        Message userMessage = userPromtTemplate.createMessage();
-
-        Prompt prompt = new Prompt(systemMessage,userMessage);
-
-        var result = chatClient.prompt(prompt)
+        log.info("User prompt exists: {}", userPrompt.exists());
+        var result = chatClient.prompt()
+                .system(systemPrompt)
+                .user(user->user.text(this.userPrompt).param("query",query))
                 .call()
                 .content();
         return result;
+        }
+
+    @Override
+    public Flux<String> streamChat(String query) {
+        return this.chatClient.prompt()
+                .system(systemPrompt)
+                .user(user->user.text(this.userPrompt).param("query",query))
+                .stream()
+                .content();
     }
+
 }
