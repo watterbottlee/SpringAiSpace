@@ -20,7 +20,7 @@ class DemoApplicationTests {
     void testTemplateRenderer() throws IOException {
         System.out.println("Template renderer");
 
-        var output = this.chatService.chat("helllo");
+        var output = this.chatService.chat("helllo","hi");
         System.out.println(output);
 
     }

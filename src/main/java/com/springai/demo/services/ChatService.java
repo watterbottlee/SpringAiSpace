@@ -7,7 +7,7 @@ import java.io.IOException;
 
 public interface ChatService {
 
-    String chat(String query) throws IOException;
+    String chat(String query, String userId) throws IOException;
 
-    Flux<String> streamChat(String query);
+    Flux<String> streamChat(String query, String userId);
 }

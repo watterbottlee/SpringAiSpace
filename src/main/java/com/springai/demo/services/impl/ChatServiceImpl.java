@@ -3,6 +3,7 @@ package com.springai.demo.services.impl;
 import com.springai.demo.services.ChatService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -23,10 +24,11 @@ public class ChatServiceImpl implements ChatService {
     private Resource userPrompt;
 
     @Override
-    public String chat(String query) {
+    public String chat(String query, String userId) {
 
         log.info("User prompt exists: {}", userPrompt.exists());
         var result = chatClient.prompt()
+                .advisors(advisorSpec -> advisorSpec.param(ChatMemory.CONVERSATION_ID,userId))
                 .system(systemPrompt)
                 .user(user->user.text(this.userPrompt).param("query",query))
                 .call()
@@ -35,8 +37,9 @@ public class ChatServiceImpl implements ChatService {
         }
 
     @Override
-    public Flux<String> streamChat(String query) {
+    public Flux<String> streamChat(String query, String userId) {
         return this.chatClient.prompt()
+                .advisors(advisorSpec -> advisorSpec.param(ChatMemory.CONVERSATION_ID,userId))
                 .system(systemPrompt)
                 .user(user->user.text(this.userPrompt).param("query",query))
                 .stream()
