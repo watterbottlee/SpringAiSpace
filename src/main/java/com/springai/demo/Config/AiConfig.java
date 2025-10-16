@@ -8,9 +8,12 @@ import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.chat.memory.repository.jdbc.JdbcChatMemoryRepository;
-import org.springframework.ai.openai.OpenAiChatOptions;
+import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.mistralai.MistralAiChatModel;
+import org.springframework.ai.mistralai.MistralAiChatOptions;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 import java.util.List;
 
@@ -33,8 +36,8 @@ public class AiConfig {
         MessageChatMemoryAdvisor messageChatMemoryAdvisor = MessageChatMemoryAdvisor.builder(chatMemory).build();
         return builder
                 .defaultAdvisors(messageChatMemoryAdvisor,new TokenPrintAdvisor(), new SimpleLoggerAdvisor(),new SafeGuardAdvisor(List.of("sex")))
-                .defaultOptions(OpenAiChatOptions.builder()
-                        .model("openai/gpt-oss-120b")
+                .defaultOptions(MistralAiChatOptions.builder()
+                        .model("open-mixtral-8x7b")
                         .temperature(0.7)
                         .build())
                 .build();
