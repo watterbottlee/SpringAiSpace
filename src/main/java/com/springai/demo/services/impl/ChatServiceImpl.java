@@ -3,18 +3,17 @@ package com.springai.demo.services.impl;
 import com.springai.demo.services.ChatService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -38,20 +37,15 @@ public class ChatServiceImpl implements ChatService {
     @Override
     public String chat(String query, String userId) {
 
-        SearchRequest searchRequest = SearchRequest.builder()
-                .topK(5)
-                .similarityThreshold(0.6)
-                .query(query)
-                .build();
-        List<Document> documents = this.vectorStore.similaritySearch(searchRequest);
-        List<String> documentList = documents.stream().map(Document::getText).toList();
-        String contextData = String.join(",",documentList);
-        log.info("context Data: {}",contextData);
-
         var result = chatClient.prompt()
-                .advisors(advisorSpec -> advisorSpec.param(ChatMemory.CONVERSATION_ID,userId))
-                .system(system->
-                        system.text(this.systemPrompt).param("documents",contextData))
+                .advisors(QuestionAnswerAdvisor
+                        .builder(vectorStore)
+                        .searchRequest(SearchRequest.builder()
+                                .topK(3)
+                                .similarityThreshold(0.5)
+                                .build())
+                        .build()
+                )
                 .user(user->
                         user.text(this.userPrompt).param("query",query))
                 .call()
