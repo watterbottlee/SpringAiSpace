@@ -1,16 +1,10 @@
 package com.springai.demo.services;
 
-import com.springai.demo.entities.AiResponse;
-import reactor.core.publisher.Flux;
-
-import java.io.IOException;
 import java.util.List;
 
 public interface ChatService {
 
-    String chat(String query, String userId) throws IOException;
-
-    Flux<String> streamChat(String query, String userId);
+    String getResponse(String query);
 
     void saveData(List<String> data);
 }
